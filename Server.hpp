@@ -5,17 +5,26 @@
 #include <vector>
 #include <poll.h>
 #include <unordered_map>
+#include "timer.hpp"
+
 class echoServer
 {
     // Define constant here
     const static size_t k_max_msg = 4096;
     const static int k_max_arg = 1024;
     // User defined data
-    enum
+    enum 
     {
-        RES_OK = 0,
-        RES_ERR = 1,
-        RES_NX = 2,
+        ERR_UNKNOWN = 1,
+        ERR_2BIG = 2,
+    };
+    enum 
+    {
+        SER_NIL = 0,
+        SER_ERR = 1,
+        SER_STR = 2,
+        SER_INT = 3,
+        SER_ARR = 4,
     };
     enum
     {
@@ -34,7 +43,11 @@ class echoServer
         size_t wbuf_size = 0;
         size_t wbuf_sent = 0;
         uint8_t wbuf[4 + k_max_msg];
+        // Each connection have it own time slot instance
+        timeSlot timeInstance;
     };
+    timer globalTime;
+
     std::vector<std::string> requestList;
     std::vector<std::string> responseList;
 
@@ -42,18 +55,27 @@ class echoServer
 
     std::vector<struct pollfd> fdArr;
     std::vector<struct Conn *> connArr;
+    int serverInitialization();
 
     int acceptNewConnection(std::vector<Conn *> &fd2Conn, int fd);
     void connectionIO(Conn *conn);
+    
     void requestState(Conn *conn);
     void responseState(Conn *conn);
     int requestProcess(Conn *conn);
     void sendResponse(Conn *conn);
     int doRequest();
-    int doGet(std::vector<std::string> &cmd, std::string &resString);
-    int doSet(std::vector<std::string> &cmd, std::string &resString);
-    int doDel(std::vector<std::string> &cmd, std::string &resString);
 
+    void doKeys(std::vector<std::string> &cmd, std::string &resString);
+    void doGet(std::vector<std::string> &cmd, std::string &resString);
+    void doSet(std::vector<std::string> &cmd, std::string &resString);
+    void doDel(std::vector<std::string> &cmd, std::string &resString);
+
+    void outNull(std::string &resString);
+    void outStr(std::string &resString, std::string &data);
+    void outInt(std::string &resString, int64_t val);
+    void outErr(std::string &resString, int errorCode, const std::string &errorMsg);
+    void outArr(std::string &resString, int size);
 public:
     echoServer() {}
     ~echoServer() {}

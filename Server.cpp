@@ -7,42 +7,15 @@
 #include <cassert>
 
 #include "helper.hpp"
-#include "echoServer.hpp"
+#include "Server.hpp"
 
 int echoServer::startServer()
 {
     std::cout << "Starting Server" << std::endl;
-    // Create socket
-    int fd = socket(AF_INET, SOCK_STREAM, 0);
-    if (fd < 0)
-    {
-        std::cerr << "cant create socket" << std::endl;
-        return 0;
-    }
-    int optionVal = 1;
-    // Set the option of socket to be reuse
-    setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &optionVal, sizeof(optionVal));
-    // Bind socket
-    sockaddr_in serverAddress;
-    serverAddress.sin_family = AF_INET;
-    serverAddress.sin_port = ntohs(1234);
-    serverAddress.sin_addr.s_addr = INADDR_ANY;
-
-    if (bind(fd, (const sockaddr *)&serverAddress, sizeof(serverAddress)) != 0)
-    {
-        std::cerr << "Cant bind socket" << std::endl;
-        return 0;
-    }
-
-    // Listen to the damn port, allow maxium connection
-    if (listen(fd, SOMAXCONN))
-    {
-        std::cerr << "Cant bind socket" << std::endl;
-        return 0;
-    }
-    // Set the port to nonblocking mode
-    helper::setFdToNonblocking(fd);
-
+    // Start the global timer
+    globalTime.initTimer();
+    // Init the server
+    int fd = serverInitialization();
     while (1)
     {
         fdArr.clear();
@@ -65,6 +38,7 @@ int echoServer::startServer()
             fdArr.push_back(pfd);
         }
 
+        // int timeOut = 
         if (poll(fdArr.data(), fdArr.size(), 1000) < 0)
         {
             std::cerr << "Polling error" << std::endl;
@@ -94,6 +68,39 @@ int echoServer::startServer()
             acceptNewConnection(connArr, fdArr[0].fd);
         }
     }
+}
+int echoServer::serverInitialization()
+{
+    int fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (fd < 0)
+    {
+        std::cerr << "cant create socket" << std::endl;
+        return 0;
+    }
+    int optionVal = 1;
+    // Set the option of socket to be reuse
+    setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &optionVal, sizeof(optionVal));
+    // Bind socket
+    sockaddr_in serverAddress;
+    serverAddress.sin_family = AF_INET;
+    serverAddress.sin_port = ntohs(1234);
+    serverAddress.sin_addr.s_addr = INADDR_ANY;
+
+    if (bind(fd, (const sockaddr *)&serverAddress, sizeof(serverAddress)) != 0)
+    {
+        std::cerr << "Cant bind socket" << std::endl;
+        return 0;
+    }
+
+    // Listen to the damn port, allow maxium connection
+    if (listen(fd, SOMAXCONN))
+    {
+        std::cerr << "Cant bind socket" << std::endl;
+        return 0;
+    }
+    // Set the port to nonblocking mode
+    helper::setFdToNonblocking(fd);
+    return fd;
 }
 int echoServer::acceptNewConnection(std::vector<Conn *> &fd2Conn, int fd)
 {
@@ -141,7 +148,7 @@ void echoServer::connectionIO(Conn *conn)
 void echoServer::requestState(Conn *conn)
 {
     int receivedByte = 0;
-    //std::cout << "Start request state" << std::endl;
+    // std::cout << "Start request state" << std::endl;
     while (conn->state == STATE_REQ)
     {
         do
@@ -219,77 +226,109 @@ int echoServer::doRequest()
     {
         helper::parseRequest(request.data(), request.size(), command);
         respondString.clear();
-        if (command.size() == 2 && command[0] == "get")
+        if (command.size() == 1 && command[0] == "keys")
         {
-            respondCode = doGet(command, respondString);
+            doKeys(command, respondString);
+        }
+        else if (command.size() == 2 && command[0] == "get")
+        {
+            doGet(command, respondString);
         }
         else if (command.size() == 3 && command[0] == "set")
         {
-            respondCode = doSet(command, respondString);
+            doSet(command, respondString);
         }
         else if (command.size() == 2 && command[0] == "del")
         {
-            respondCode = doDel(command, respondString);
+            doDel(command, respondString);
         }
         else
         {
-            respondCode = RES_ERR;
+            outErr(respondString, ERR_UNKNOWN, "Unknown cmd");
         }
         // Insert the respond of the string
-        // +-----+---------+
-        // | res | data... |
-        // +-----+---------+
-        char resCode[4];
-        memcpy(resCode, &respondCode, 4);
-
-        respondString.insert(0, std::string(resCode, 4));
-        std::cout << respondString.size() << std::endl;
-
         responseList.push_back(respondString);
     }
     requestList.clear();
     return 1;
 }
-int echoServer::doGet(std::vector<std::string> &cmd, std::string &resString)
+void echoServer::doKeys(std::vector<std::string> &cmd, std::string &resString)
+{
+    outArr(resString, dataMap.size());
+    for (auto &pair : dataMap)
+    {
+        std::string key = pair.first;
+        outStr(resString, key);
+    }
+}
+void echoServer::doGet(std::vector<std::string> &cmd, std::string &resString)
 {
     if (cmd.size() < 2)
     {
         std::cerr << "doGet() Not enough command" << std::endl;
-        return RES_ERR;
+        return outErr(resString, ERR_UNKNOWN, "Wrong cmd format");
     }
     if (dataMap.count(cmd[1]) <= 0)
     {
         std::cerr << "doGet() Element not exist in the data map" << std::endl;
-        return RES_NX;
+        return outNull(resString);
     }
-    resString = dataMap[cmd[1]];
-    return RES_OK;
+    return outStr(resString, dataMap[cmd[1]]);
 }
-int echoServer::doSet(std::vector<std::string> &cmd, std::string &resString)
+void echoServer::doSet(std::vector<std::string> &cmd, std::string &resString)
 {
     if (cmd.size() < 3)
     {
         std::cerr << "doSet() Not enough command" << std::endl;
-        return RES_ERR;
+        return outErr(resString, ERR_UNKNOWN, "Wrong cmd format");
     }
     dataMap[cmd[1]] = cmd[2];
-    return RES_OK;
+    return outInt(resString, 1);
 }
 // THis will handle the del command recv from client
-int echoServer::doDel(std::vector<std::string> &cmd, std::string &resString)
+void echoServer::doDel(std::vector<std::string> &cmd, std::string &resString)
 {
     if (cmd.size() < 2)
     {
         std::cerr << "doDel() Not enough command" << std::endl;
-        return RES_ERR;
+        return outErr(resString, ERR_UNKNOWN, "Wrong cmd format");
     }
     if (dataMap.count(cmd[1]) <= 0)
     {
         std::cerr << "doDel() Element not exist in the data map" << std::endl;
-        return RES_NX;
+        return outInt(resString, 0);
     }
     dataMap.erase(cmd[1]);
-    return RES_OK;
+    return outInt(resString, 1);
+}
+void echoServer::outNull(std::string &resString)
+{
+    resString.push_back(SER_NIL);
+}
+void echoServer::outStr(std::string &resString, std::string &data)
+{
+    resString.push_back(SER_STR);
+    int len = data.size();
+    resString.append((char *)&len, 4);
+    resString.append(data);
+}
+void echoServer::outInt(std::string &resString, int64_t val)
+{
+    resString.push_back(SER_INT);
+    resString.append((char *)&val, 8);
+}
+void echoServer::outErr(std::string &resString, int errorCode, const std::string &errorMsg)
+{
+    resString.push_back(SER_ERR);
+    resString.append((char *)&errorCode, 4);
+    int msgSize = errorMsg.size();
+    resString.append((char *)&msgSize, 4);
+    resString.append(errorMsg);
+}
+void echoServer::outArr(std::string &resString, int size)
+{
+    resString.push_back(SER_ARR);
+    resString.append((char *)&size, 4);
 }
 void echoServer::responseState(Conn *conn)
 {

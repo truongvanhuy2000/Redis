@@ -1,9 +1,9 @@
 .PHONY: all clean count
-output: main.o echoServer.o
-	g++ main.o echoServer.o -o echoServer
+output: main.o Server.o
+	g++ main.o Server.o -o Server
 main.o: main.cpp
 	g++ -c main.cpp
-echoServer.o: echoServer.cpp echoServer.hpp helper.hpp
-	g++ -c echoServer.cpp
+Server.o: Server.cpp Server.hpp helper.hpp
+	g++ -c Server.cpp
 clean:
 	rm -rf *.o
