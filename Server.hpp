@@ -59,11 +59,14 @@ class echoServer
 
     int acceptNewConnection(std::vector<Conn *> &fd2Conn, int fd);
     void connectionIO(Conn *conn);
+    void closeConnection(Conn *conn);
     
     void requestState(Conn *conn);
     void responseState(Conn *conn);
     int requestProcess(Conn *conn);
     void sendResponse(Conn *conn);
+
+    void timeOutHandler();
     int doRequest();
 
     void doKeys(std::vector<std::string> &cmd, std::string &resString);
@@ -80,6 +83,5 @@ public:
     echoServer() {}
     ~echoServer() {}
     int startServer();
-    friend class helper;
 };
 #endif

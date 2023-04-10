@@ -4,4 +4,5 @@ int main()
 {
     echoServer newServer;
     newServer.startServer();
+    return 0;
 }

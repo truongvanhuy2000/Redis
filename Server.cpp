@@ -8,6 +8,7 @@
 
 #include "helper.hpp"
 #include "Server.hpp"
+#include "marco.hpp"
 
 int echoServer::startServer()
 {
@@ -36,10 +37,11 @@ int echoServer::startServer()
             // When the poll() system call detects an error on the file descriptor, it will set the revents member of pfd to include the POLLERR flag.
             pfd.events |= POLLERR;
             fdArr.push_back(pfd);
+            // std::cout << "Connection: " << conn->fd << std::endl;
         }
 
-        // int timeOut = 
-        if (poll(fdArr.data(), fdArr.size(), 1000) < 0)
+        int timeOut = globalTime.getRemainingInterval();
+        if (poll(fdArr.data(), fdArr.size(), timeOut) < 0)
         {
             std::cerr << "Polling error" << std::endl;
             return 0;
@@ -55,18 +57,37 @@ int echoServer::startServer()
             connectionIO(conn);
             if (conn->state == STATE_END)
             {
-                // CLose the connection if client disconnect
-                connArr[fdArr[i].fd] = NULL;
-                close(conn->fd);
-                delete conn;
+                closeConnection(conn);
             }
         }
+        timeOutHandler();
         if (fdArr[0].revents)
         {
-            std::cout << "New client connection" << std::endl;
             // Accept new connection if fd is active
             acceptNewConnection(connArr, fdArr[0].fd);
         }
+    }
+}
+void echoServer::closeConnection(Conn *conn)
+{
+    // CLose the connection if client disconnect
+    std::cout << "close a connection on: " << conn->fd << std::endl;
+    connArr[conn->fd] = NULL;
+    close(conn->fd);
+    globalTime.deleteTimeslot(conn->timeInstance);
+    delete conn;
+}
+void echoServer::timeOutHandler()
+{
+    while (!globalTime.emptyTimeSLot())
+    {
+        timeSlot *instance = globalTime.process_timers();
+        if (!instance)
+        {
+            break;
+        }
+        Conn *conn = container_of(instance, Conn, timeInstance);
+        closeConnection(conn);
     }
 }
 int echoServer::serverInitialization()
@@ -120,19 +141,32 @@ int echoServer::acceptNewConnection(std::vector<Conn *> &fd2Conn, int fd)
         std::cerr << "allocate error bitch" << std::endl;
         return 0;
     }
+
     newConn->fd = connFd;
     newConn->state = STATE_REQ; // Client send request
-
     // Put the new connection into the vector
-    if (newConn->fd > fd2Conn.size())
+    if (newConn->fd >= fd2Conn.size())
     {
         fd2Conn.resize(newConn->fd + 1);
     }
     fd2Conn[newConn->fd] = newConn;
+    // Initialize the time where its start
+    globalTime.insertTimeslot(newConn->timeInstance);
+    std::cout << "New client connection: " << newConn->fd << std::endl;
+
+    for (int i = 0; i < fd2Conn.size(); i++)
+    {
+        if (!fd2Conn[i])
+        {
+            continue;
+        }
+    }
     return 1;
 }
 void echoServer::connectionIO(Conn *conn)
 {
+    // Update the time slot if there's any IO happen on the connection
+    globalTime.timeslotUpdate(conn->timeInstance);
     switch (conn->state)
     {
     case STATE_REQ:
@@ -161,7 +195,6 @@ void echoServer::requestState(Conn *conn)
         if (errno == EAGAIN && receivedByte < 0)
         {
             // std::cerr << "EAGAIN error" << std::endl;
-            conn->state = STATE_RES;
             break;
         }
         if (receivedByte < 0)
@@ -181,6 +214,7 @@ void echoServer::requestState(Conn *conn)
         {
             // Do what each request say
             doRequest();
+            conn->state = STATE_RES;
         }
     }
 }
@@ -206,7 +240,7 @@ int echoServer::requestProcess(Conn *conn)
         // Create buffer for the request and copy data from the read buffer to it
 
         tempString = std::string(dataPtr + 4, len);
-        std::cout << "Client say: " << tempString << std::endl;
+        // std::cout << "Client say: " << tempString << std::endl;
 
         // Push the new request to the request list
         requestList.push_back(tempString);
@@ -346,7 +380,6 @@ void echoServer::responseState(Conn *conn)
         sendResponse(conn);
     }
     responseList.clear();
-    conn->state = STATE_REQ;
 }
 void echoServer::sendResponse(Conn *conn)
 {
@@ -373,7 +406,8 @@ void echoServer::sendResponse(Conn *conn)
 
         if (conn->wbuf_sent == conn->wbuf_size)
         {
-            std::cout << "Sent to client successfully" << std::endl;
+            // std::cout << "Sent to client successfully" << std::endl;
+            conn->state = STATE_REQ;
             // Sent successfully
             conn->wbuf_sent = 0;
             conn->wbuf_size = 0;

@@ -6,11 +6,6 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include "Server.hpp"
-
-#define container_of(ptr, type, member) ({                  \
-    const typeof( ((type *)0)->member ) *__mptr = (ptr);    \
-    (type *)( (char *)__mptr - offsetof(type, member) );})
 
 class helper
 {
@@ -19,58 +14,4 @@ public:
     static int parseRequest(char *request, int len, std::vector<std::string> &output);
 };
 
-int helper::setFdToNonblocking(int fd)
-{
-    // Set file discriptor to be non blocking
-    errno = 0;
-    int flags = fcntl(fd, F_GETFL, 0);
-    if (errno)
-    {
-        std::cerr << "fcntl error" << std::endl;
-        return 0;
-    }
-
-    flags |= O_NONBLOCK;
-
-    errno = 0;
-    (void)fcntl(fd, F_SETFL, flags);
-    if (errno)
-    {
-        std::cerr << "fcntl error" << std::endl;
-        return 0;
-    }
-    return 1;
-}
-int helper::parseRequest(char *request, int len, std::vector<std::string> &output)
-{
-    if (len < 4)
-    {
-        return 0;
-    }
-    int nstr = *((int *)request);
-
-    if (nstr > echoServer::k_max_arg)
-    {
-        std::cerr << "Parse Request: exceed maximum arg length" << std::endl;
-        return 0;
-    }
-
-    int requestSize = 0;
-    char *dataPtr = request + 4; // Move pass the nstr parameter
-    std::string temp;
-    while (nstr--)
-    {
-        requestSize = *((int *)dataPtr);
-        if (requestSize + 4 > len) 
-        {
-            std::cerr << "Parse Request: exceed maximum msg length" << std::endl;
-            return 0;
-        }
-        temp = std::string(dataPtr + 4, requestSize);
-        output.push_back(temp);
-
-        dataPtr += requestSize + 4;
-    }
-    return 1;
-}
 #endif
