@@ -1,6 +1,6 @@
-#include "timer.hpp"
-#include "helper.hpp"
-#include "marco.hpp"
+#include "include/timer.hpp"
+#include "include/helper.hpp"
+#include "include/marco.hpp"
 
 uint64_t timer::get_monotonic_usec()
 {
@@ -41,13 +41,13 @@ int64_t timer::getRemainingInterval()
 
     return (uint32_t)((next_us - now_us) / 1000);
 }
-int timer::timeslotUpdate(timeSlot &instance)
+void timer::timeslotUpdate(timeSlot &instance)
 {
     instance.idleTime = get_monotonic_usec();
     dlist_detach(&instance.timeNode);
     dlist_insert_last(&headNode, &instance.timeNode);
 }
-int timer::insertTimeslot(timeSlot &instance)
+void timer::insertTimeslot(timeSlot &instance)
 {
     instance.idleTime = get_monotonic_usec();
 

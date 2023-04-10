@@ -6,9 +6,9 @@
 #include <cstring>
 #include <cassert>
 
-#include "helper.hpp"
-#include "Server.hpp"
-#include "marco.hpp"
+#include "include/helper.hpp"
+#include "include/Server.hpp"
+#include "include/marco.hpp"
 
 int echoServer::startServer()
 {

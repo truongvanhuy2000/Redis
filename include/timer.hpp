@@ -25,8 +25,8 @@ public:
     }
     int64_t getRemainingInterval();
     timeSlot *process_timers();
-    int insertTimeslot(timeSlot &instance);
-    int timeslotUpdate(timeSlot &instance);
+    void insertTimeslot(timeSlot &instance);
+    void timeslotUpdate(timeSlot &instance);
     void deleteTimeslot(timeSlot &instance)
     {
         dlist_detach(&instance.timeNode);

@@ -79,6 +79,7 @@ class echoServer
     void outInt(std::string &resString, int64_t val);
     void outErr(std::string &resString, int errorCode, const std::string &errorMsg);
     void outArr(std::string &resString, int size);
+
 public:
     echoServer() {}
     ~echoServer() {}
