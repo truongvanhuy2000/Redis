@@ -2,8 +2,8 @@
 .PHONY: all clean count
 
 # Define the target executable
-output: object/main.o object/Server.o object/timer.o object/helper.o
-	g++ object/main.o object/Server.o object/timer.o object/helper.o -o output/Server
+output: object/main.o object/Server.o object/timer.o object/helper.o object/request.o object/response.o
+	g++ object/main.o object/Server.o object/timer.o object/helper.o object/request.o object/response.o -o output/Server
 client:
 	g++ client.cpp -o output/client
 # Define rules for each object file
@@ -19,6 +19,11 @@ object/timer.o: timer.cpp include/timer.hpp
 object/helper.o: helper.cpp include/helper.hpp
 	g++ -c helper.cpp -o object/helper.o
 
+object/request.o: request.cpp include/request.hpp
+	g++ -c request.cpp -o object/request.o
+
+object/response.o: response.cpp include/response.hpp
+	g++ -c response.cpp -o object/response.o
 # Define the clean target to remove object files
 clean:
 	rm -rf object/*.o

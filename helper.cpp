@@ -1,4 +1,7 @@
 #include "include/helper.hpp"
+#include <fcntl.h>
+#include <errno.h>
+#include <unistd.h>
 
 int helper::setFdToNonblocking(int fd)
 {

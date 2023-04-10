@@ -1,8 +1,5 @@
 #ifndef HELPER__HPP___
 #define HELPER__HPP___
-#include <fcntl.h>
-#include <errno.h>
-#include <unistd.h>
 #include <iostream>
 #include <vector>
 #include <string>
