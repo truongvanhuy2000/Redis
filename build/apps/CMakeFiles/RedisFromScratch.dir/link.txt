@@ -1,0 +1,1 @@
+/usr/bin/c++ -g CMakeFiles/RedisFromScratch.dir/server/main.cpp.o -o RedisFromScratch  -Wl,-rpath,/home/huy/C++/Redis/build/src ../src/libRedis.so 

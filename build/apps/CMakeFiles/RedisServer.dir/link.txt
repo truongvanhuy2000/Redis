@@ -1,0 +1,1 @@
+/usr/bin/c++ -g CMakeFiles/RedisServer.dir/server/main.cpp.o -o RedisServer  -Wl,-rpath,/home/huy/C++/Redis/build/src ../src/libRedis.so 

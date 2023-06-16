@@ -1,0 +1,37 @@
+[
+{
+  "directory": "/home/huy/C++/Redis/build/src",
+  "command": "/usr/bin/c++ -DRedis_EXPORTS -I/home/huy/C++/Redis/include -g -fPIC -o CMakeFiles/Redis.dir/redis/Server.cpp.o -c /home/huy/C++/Redis/src/redis/Server.cpp",
+  "file": "/home/huy/C++/Redis/src/redis/Server.cpp"
+},
+{
+  "directory": "/home/huy/C++/Redis/build/src",
+  "command": "/usr/bin/c++ -DRedis_EXPORTS -I/home/huy/C++/Redis/include -g -fPIC -o CMakeFiles/Redis.dir/redis/helper.cpp.o -c /home/huy/C++/Redis/src/redis/helper.cpp",
+  "file": "/home/huy/C++/Redis/src/redis/helper.cpp"
+},
+{
+  "directory": "/home/huy/C++/Redis/build/src",
+  "command": "/usr/bin/c++ -DRedis_EXPORTS -I/home/huy/C++/Redis/include -g -fPIC -o CMakeFiles/Redis.dir/redis/request.cpp.o -c /home/huy/C++/Redis/src/redis/request.cpp",
+  "file": "/home/huy/C++/Redis/src/redis/request.cpp"
+},
+{
+  "directory": "/home/huy/C++/Redis/build/src",
+  "command": "/usr/bin/c++ -DRedis_EXPORTS -I/home/huy/C++/Redis/include -g -fPIC -o CMakeFiles/Redis.dir/redis/response.cpp.o -c /home/huy/C++/Redis/src/redis/response.cpp",
+  "file": "/home/huy/C++/Redis/src/redis/response.cpp"
+},
+{
+  "directory": "/home/huy/C++/Redis/build/src",
+  "command": "/usr/bin/c++ -DRedis_EXPORTS -I/home/huy/C++/Redis/include -g -fPIC -o CMakeFiles/Redis.dir/redis/timer.cpp.o -c /home/huy/C++/Redis/src/redis/timer.cpp",
+  "file": "/home/huy/C++/Redis/src/redis/timer.cpp"
+},
+{
+  "directory": "/home/huy/C++/Redis/build/apps",
+  "command": "/usr/bin/c++  -I/home/huy/C++/Redis/include -g -o CMakeFiles/RedisServer.dir/server/main.cpp.o -c /home/huy/C++/Redis/apps/server/main.cpp",
+  "file": "/home/huy/C++/Redis/apps/server/main.cpp"
+},
+{
+  "directory": "/home/huy/C++/Redis/build/apps",
+  "command": "/usr/bin/c++   -g -o CMakeFiles/RedisClient.dir/client/client.cpp.o -c /home/huy/C++/Redis/apps/client/client.cpp",
+  "file": "/home/huy/C++/Redis/apps/client/client.cpp"
+}
+]

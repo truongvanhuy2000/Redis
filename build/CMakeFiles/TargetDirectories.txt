@@ -1,0 +1,9 @@
+/home/huy/C++/Redis/build/CMakeFiles/edit_cache.dir
+/home/huy/C++/Redis/build/CMakeFiles/rebuild_cache.dir
+/home/huy/C++/Redis/build/src/CMakeFiles/Redis.dir
+/home/huy/C++/Redis/build/src/CMakeFiles/edit_cache.dir
+/home/huy/C++/Redis/build/src/CMakeFiles/rebuild_cache.dir
+/home/huy/C++/Redis/build/apps/CMakeFiles/RedisServer.dir
+/home/huy/C++/Redis/build/apps/CMakeFiles/RedisClient.dir
+/home/huy/C++/Redis/build/apps/CMakeFiles/edit_cache.dir
+/home/huy/C++/Redis/build/apps/CMakeFiles/rebuild_cache.dir
